@@ -373,4 +373,92 @@ Grading the student's work for Lab: Creating Custom Container Images
 [student@workstation dockerfile-review]$ 
 
 
+----------------------------------------------------------------------------------------------------------------------------
+CHapter 7
+[student@workstation ~]$ lab openshift-resources start
+
+Setting up workstation for the Guided Exercise: Deploying a Database Server on OpenShift
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ · Ensuring the 'xxbhuf-mysql-openshift' project is absent.....  SUCCESS
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API} 
+Login successful.
+
+You don't have any projects. You can try to create a new project, by running
+
+    oc new-project <projectname>
+
+[student@workstation ~]$ oc new-project ${RHT_OCP4_DEV_USER}-mysql-openshift
+Now using project "xxbhuf-mysql-openshift" on server "https://api.na45.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app ruby~https://github.com/sclorg/ruby-ex.git
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
+
+[student@workstation ~]$ oc new-app --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55
+--> Found container image 60726b3 (21 months old) from registry.access.redhat.com for "registry.access.redhat.com/rhscl/mysql-57-rhel7:latest"
+
+    MySQL 5.7 
+    --------- 
+    MySQL is a multi-user, multi-threaded SQL database server. The container image provides a containerized packaging of the MySQL mysqld daemon and client application. The mysqld server daemon accepts connections from clients and provides access to content from MySQL databases on behalf of the clients.
+
+    Tags: database, mysql, mysql57, rh-mysql57
+
+    * An image stream tag will be created as "mysql-openshift:latest" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "mysql-openshift" created
+    deployment.apps "mysql-openshift" created
+    service "mysql-openshift" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/mysql-openshift' 
+    Run 'oc status' to view your app.
+[student@workstation ~]$ oc status
+In project xxbhuf-mysql-openshift on server https://api.na45.prod.nextcle.com:6443
+
+svc/mysql-openshift - 172.30.56.20:3306
+  deployment/mysql-openshift deploys istag/mysql-openshift:latest 
+    deployment #2 running for about a minute - 1 pod
+    deployment #1 deployed about a minute ago
+
+
+1 info identified, use 'oc status --suggest' to see details.
+[student@workstation ~]$ oc get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+mysql-openshift-5f674fb8d7-qpgpc   1/1     Running   0          106s
+[student@workstation ~]$ oc get pods -w
+NAME                               READY   STATUS    RESTARTS   AGE
+mysql-openshift-5f674fb8d7-qpgpc   1/1     Running   0          117s
+^C[student@workstation ~]$ oc get service
+NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+mysql-openshift   ClusterIP   172.30.56.20   <none>        3306/TCP   4m8s
+[student@workstation ~]$ oc expose service mysql-openshift
+route.route.openshift.io/mysql-openshift exposed
+[student@workstation ~]$ oc get routes
+NAME              HOST/PORT                                                           PATH   SERVICES          PORT       TERMINATION   WILDCARD
+mysql-openshift   mysql-openshift-xxbhuf-mysql-openshift.apps.na45.prod.nextcle.com          mysql-openshift   3306-tcp                 None
+[student@workstation ~]$ oc get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+mysql-openshift-5f674fb8d7-qpgpc   1/1     Running   0          5m35s
+[student@workstation ~]$ oc port-forward mysql-openshift-5f674fb8d7-qpgpc 3306:3306
+Forwarding from 127.0.0.1:3306 -> 3306
+Forwarding from [::1]:3306 -> 3306
+Handling connection for 3306
+^C[student@workstation ~]$ oc delete project ${RHT_OCP4_DEV_USER}-mysql-openshift
+project.project.openshift.io "xxbhuf-mysql-openshift" deleted
+[student@workstation ~]$ lab openshift-resources finish
+
+Completing the Guided Exercise: Deploying a Database Server on OpenShift
+
+ · Deleting the 'xxbhuf-mysql-openshift' project...............  SUCCESS
+[student@workstation ~]$ 
+
 
