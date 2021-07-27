@@ -1,0 +1,179 @@
+dezma/dp180-custon-httpd-1.0
+d030737b158c4c9cc52113fc96c5e0a2fe12e91f5f4e2bef59be171afe3acada
+[student@workstation ~]$ curl http://localhost:8280/do180.html
+DO180 Page
+[student@workstation ~]$ lab image-operation finish
+Error: unknown problem specified and not found, image-operation
+[student@workstation ~]$ lab image-operations finish
+
+Completing the GE: Creating a Custom Apache Container Image
+
+ · Stopping official-httpd container...........................  SUCCESS
+ · Removing official-httpd container...........................  SUCCESS
+ · Stopping test-httpd container...............................  SUCCESS
+ · Removing test-httpd container...............................  SUCCESS
+ · Removing redhattraining/httpd-parent image..................  SUCCESS
+ · Removing quay.io/jairoledezma/do180-custom-httpd image......  SUCCESS
+ · Removing localhost/do180-custom-httpd image.................  SUCCESS
+[student@workstation ~]$ lab image-review start
+
+Setting up workstation for the Lab: Managing Images
+
+ · Checking podman configuration...............................  SUCCESS
+[student@workstation ~]$ clear
+
+[student@workstation ~]$ sudo podman docker.io/nginx:1.17
+Error: unrecognized command `podman docker.io/nginx:1.17`
+Try 'podman --help' for more information.
+[student@workstation ~]$ sudo podman pull docker.io/nginx:1.17
+Trying to pull docker.io/nginx:1.17...
+Getting image source signatures
+Copying blob afb6ec6fdc1c done
+Copying blob b90c53a0b692 done
+Copying blob 11fa52a0fdc0 done
+Copying config 9beeba249f done
+Writing manifest to image destination
+Storing signatures
+9beeba249f3ee158d3e495a6ac25c5667ae2de8a43ac2a8bfd2bf687a58c06c9
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG      IMAGE ID       CREATED         SIZE
+docker.io/library/nginx                           1.17     9beeba249f3e   14 months ago   131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest   60726b33a00a   21 months ago   448 MB
+quay.io/redhattraining/httpd-parent               latest   4346d3cace25   2 years ago     236 MB
+[student@workstation ~]$ sudo podman run --name official-nginx -d -p 8080:80 docker.io/nginx:1.17
+8bdd110e8db7bfc5b093de4a5e8ded2b8da4121b968887a7e3507bcd48c475d9
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE                         COMMAND               CREATED         STATUS             PORTS                 NAMES
+8bdd110e8db7  docker.io/library/nginx:1.17  nginx -g daemon o...  11 seconds ago  Up 10 seconds ago  0.0.0.0:8080->80/tcp  official-nginx
+[student@workstation ~]$ sudo podman exec -it official-nginx /bin/bash
+root@8bdd110e8db7:/# cd /usr/share/nginx
+root@8bdd110e8db7:/usr/share/nginx# ls
+html
+root@8bdd110e8db7:/usr/share/nginx# cd html
+root@8bdd110e8db7:/usr/share/nginx/html# ls
+50x.html  index.html
+root@8bdd110e8db7:/usr/share/nginx/html# echo 'DO180' > index.html
+root@8bdd110e8db7:/usr/share/nginx/html# cat index.html
+DO180
+root@8bdd110e8db7:/usr/share/nginx/html# exit
+exit
+[student@workstation ~]$ curl localhost:8080
+DO180
+[student@workstation ~]$ sudo podman stop official-nginx
+8bdd110e8db7bfc5b093de4a5e8ded2b8da4121b968887a7e3507bcd48c475d9
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
+[student@workstation ~]$ sudo podman commit -a 'Jairo Ledezma' official-nginx do180/mynginx:v1.0-SNAPSHOT
+Getting image source signatures
+Copying blob ffc9b21953f4 skipped: already exists
+Copying blob 2f4accd375d9 skipped: already exists
+Copying blob 6c7de695ede3 skipped: already exists
+Copying blob cdc8b335bdd8 done
+Copying config 6499dea707 done
+Writing manifest to image destination
+Storing signatures
+6499dea70749b27d1584ddaa81c898908e828335c3d3dee5ae186f1ef76e0416
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG             IMAGE ID       CREATED          SIZE
+localhost/do180/mynginx                           v1.0-SNAPSHOT   6499dea70749   14 seconds ago   131 MB
+docker.io/library/nginx                           1.17            9beeba249f3e   14 months ago    131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest          60726b33a00a   21 months ago    448 MB
+quay.io/redhattraining/httpd-parent               latest          4346d3cace25   2 years ago      236 MB
+[student@workstation ~]$ sudo podman run --name official-nginx-dev -d -p 8080:80 do180/mynginx:v1.0-SNAPSHOT
+fb807103cdd5b2363c44a026a505ba1a54443d040c866bb50ef025bf8695ce0c
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE                                  COMMAND               CREATED         STATUS             PORTS                 NAMES
+fb807103cdd5  localhost/do180/mynginx:v1.0-SNAPSHOT  nginx -g daemon o...  11 seconds ago  Up 11 seconds ago  0.0.0.0:8080->80/tcp  official-nginx-dev
+[student@workstation ~]$ curl localhost:8080
+DO180
+[student@workstation ~]$ sudo podman exec -it official-nginx-dev /bin/bash
+root@fb807103cdd5:/# echo 'DO180 Page' > /usr/share/nginx/html/index.html
+root@fb807103cdd5:/# exit
+exit
+[student@workstation ~]$ curl localhost:8080
+DO180 Page
+[student@workstation ~]$ sudo podman stop official-nginx-dev
+fb807103cdd5b2363c44a026a505ba1a54443d040c866bb50ef025bf8695ce0c
+[student@workstation ~]$ sudo podman commit -a 'Jairo Ledezma' official-nginx-dev do180/mynginx:v1.0
+Getting image source signatures
+Copying blob ffc9b21953f4 skipped: already exists
+Copying blob 2f4accd375d9 skipped: already exists
+Copying blob 6c7de695ede3 skipped: already exists
+Copying blob cdc8b335bdd8 skipped: already exists
+Copying blob 253aec4a7626 done
+Copying config dec9c0fde7 done
+Writing manifest to image destination
+Storing signatures
+dec9c0fde7efe37026a4bbb63ae4f59e06300a672a225e9b7d41b75d9bc4e4c3
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG             IMAGE ID       CREATED         SIZE
+localhost/do180/mynginx                           v1.0            dec9c0fde7ef   8 seconds ago   131 MB
+localhost/do180/mynginx                           v1.0-SNAPSHOT   6499dea70749   5 minutes ago   131 MB
+docker.io/library/nginx                           1.17            9beeba249f3e   14 months ago   131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest          60726b33a00a   21 months ago   448 MB
+quay.io/redhattraining/httpd-parent               latest          4346d3cace25   2 years ago     236 MB
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
+[student@workstation ~]$ sudo podman ps -a
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED        STATUS                         PORTS                    NAMES
+fb807103cdd5  localhost/do180/mynginx:v1.0-SNAPSHOT                   nginx -g daemon o...  4 minutes ago  Exited (0) About a minute ago  0.0.0.0:8080->80/tcp     official-nginx-dev
+8bdd110e8db7  docker.io/library/nginx:1.17                            nginx -g daemon o...  9 minutes ago  Exited (0) 6 minutes ago       0.0.0.0:8080->80/tcp     official-nginx
+ee734429a4ec  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            19 hours ago   Created                        0.0.0.0:13306->3306/tcp  mysql-2
+9ec8cb2c05e5  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            19 hours ago   Exited (0) 19 hours ago                                 mysql-l
+[student@workstation ~]$ sudo podman rm official-nginx-dev
+fb807103cdd5b2363c44a026a505ba1a54443d040c866bb50ef025bf8695ce0c
+[student@workstation ~]$ sudo podman imaes
+Error: unrecognized command `podman imaes`
+Try 'podman --help' for more information.
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG             IMAGE ID       CREATED              SIZE
+localhost/do180/mynginx                           v1.0            dec9c0fde7ef   About a minute ago   131 MB
+localhost/do180/mynginx                           v1.0-SNAPSHOT   6499dea70749   6 minutes ago        131 MB
+docker.io/library/nginx                           1.17            9beeba249f3e   14 months ago        131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest          60726b33a00a   21 months ago        448 MB
+quay.io/redhattraining/httpd-parent               latest          4346d3cace25   2 years ago          236 MB
+[student@workstation ~]$ sudo podman rmi do180/myginx:v1.0-SNAPSHOT
+Error: unable to find a name and tag match for do180/myginx in repotags: no such image
+[student@workstation ~]$ sudo podman rmi do180/myNginx:v1.0-SNAPSHOT
+Error: repository name must be lowercase
+[student@workstation ~]$ sudo podman rmi do180/mynginx:v1.0-SNAPSHOT
+Untagged: localhost/do180/mynginx:v1.0-SNAPSHOT
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG      IMAGE ID       CREATED         SIZE
+localhost/do180/mynginx                           v1.0     dec9c0fde7ef   3 minutes ago   131 MB
+docker.io/library/nginx                           1.17     9beeba249f3e   14 months ago   131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest   60726b33a00a   21 months ago   448 MB
+quay.io/redhattraining/httpd-parent               latest   4346d3cace25   2 years ago     236 MB
+[student@workstation ~]$ sudo podman run --name my-nginx -d -p 8280:80 do180/mynginx:v1.0
+3291320de41a87c986c3004d2c3da14223832d4335c33b2a21af6e8b7b16e621
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG      IMAGE ID       CREATED         SIZE
+localhost/do180/mynginx                           v1.0     dec9c0fde7ef   4 minutes ago   131 MB
+docker.io/library/nginx                           1.17     9beeba249f3e   14 months ago   131 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest   60726b33a00a   21 months ago   448 MB
+quay.io/redhattraining/httpd-parent               latest   4346d3cace25   2 years ago     236 MB
+[student@workstation ~]$ curl 127.0.0.1:8280
+DO180 Page
+[student@workstation ~]$ lab image-review grade
+
+Grading the student's work for the Lab: Managing Images
+
+ · Nginx container image is pulled.............................  PASS
+ · Container official-nginx is created.........................  PASS
+ · Container official-nginx is stopped.........................  PASS
+ · Tag do180/mynginx:v1.0-SNAPSHOT is removed..................  PASS
+ · Tag do180/mynginx:v1.0 is created...........................  PASS
+ · Container my-nginx is created and running...................  PASS
+ · index.html is available with the custom content.............  PASS
+[student@workstation ~]$ lab image-review finish
+
+Completing the Lab: Managing Images
+
+ · Stopping official-nginx-dev container.......................  SUCCESS
+ · Removing official-nginx-dev container.......................  SUCCESS
+ · Stopping official-nginx container...........................  SUCCESS
+ · Removing official-nginx container...........................  SUCCESS
+ · Removing do180/mynginx:v1.0 image...........................  SUCCESS
+ · Removing quay.io/redhattraining/nginx:1.17 image............  SUCCESS
+[student@workstation ~]$ 
+
