@@ -1,0 +1,124 @@
+[student@workstation ~]$ lab image-operation start
+Error: unknown problem specified and not found, image-operation
+[student@workstation ~]$ lab image-operations start
+
+Setting up workstation for the GE: Creating a Custom Apache Container Image
+
+ · Checking podman configuration...............................  SUCCESS
+[student@workstation ~]$ clear
+[student@workstation ~]$ sudo podman login quay.io
+Username: jairoledezma
+Password: 
+Error: error logging into "quay.io": invalid username/password
+[student@workstation ~]$ sudo podman login quay.io
+Username: jairoledezma
+Password: 
+Error: error logging into "quay.io": invalid username/password
+[student@workstation ~]$ sudo podman login quay.io
+Username: jairoledezma
+Password: 
+Login Succeeded!
+[student@workstation ~]$ sudo podman run -d --name official-httpd -p 8180:80 redhattraining/httpd-parent
+Trying to pull registry.access.redhat.com/redhattraining/httpd-parent...
+  name unknown: Repo not found
+Trying to pull quay.io/redhattraining/httpd-parent...
+Getting image source signatures
+Copying blob 6a5240d60dc4 skipped: already exists
+Copying blob 08b8c9fdec44 skipped: already exists
+Copying blob 787f47dbeaac skipped: already exists
+Copying blob 408208567b9a skipped: already exists
+Copying blob a3ed95caeb02 done
+Copying blob a3ed95caeb02 done
+Copying blob a3ed95caeb02 done
+Copying blob a3ed95caeb02 done
+Copying blob a3ed95caeb02 done
+Copying blob a3ed95caeb02 done
+Writing manifest to image destination
+Storing signatures
+bef7f36b6e76df00e368cfd6cef9bbef2128956678bd99f752de62d8f4020d6a
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE                                       COMMAND               CREATED        STATUS            PORTS                 NAMES
+bef7f36b6e76  quay.io/redhattraining/httpd-parent:latest  /bin/sh -c /usr/s...  5 seconds ago  Up 5 seconds ago  0.0.0.0:8180->80/tcp  official-httpd
+[student@workstation ~]$ sudo podman exec -it official-httpd /bin/bash
+bash-4.4# echo "DO180 Page" > /var/www/html/do180.html 
+bash-4.4# exit
+exit
+[student@workstation ~]$ curl 127.0.0.1:8180/do180
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>404 Not Found</title>
+</head><body>
+<h1>Not Found</h1>
+<p>The requested URL /do180 was not found on this server.</p>
+</body></html>
+[student@workstation ~]$ curl 127.0.0.1:8180/do180.html
+DO180 Page
+[student@workstation ~]$ sudo podman diff officialihttpd
+Error: could not get changes for "officialihttpd": layer, image, or container officialihttpd does not exist
+[student@workstation ~]$ sudo podman diff official-httpd
+C /root
+A /root/.bash_history
+C /run/httpd
+A /run/httpd/cgisock.1
+A /run/httpd/httpd.pid
+C /tmp
+C /var
+C /var/log
+C /var/log/httpd
+A /var/log/httpd/access_log
+A /var/log/httpd/error_log
+C /var/www
+C /var/www/html
+A /var/www/html/do180.html
+[student@workstation ~]$ sudo podman stop
+Error: you must provide at least one name or id
+[student@workstation ~]$ sudo podman stop official-httpd
+bef7f36b6e76df00e368cfd6cef9bbef2128956678bd99f752de62d8f4020d6a
+[student@workstation ~]$ sudo podman ps
+CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
+[student@workstation ~]$ sudo podman commit -a 'Jairo Ledezma' official-httpd do180-custom-httpd
+Getting image source signatures
+Copying blob 24d85c895b6b skipped: already exists
+Copying blob c613b100be16 skipped: already exists
+Copying blob 574bcc187eda skipped: already exists
+Copying blob 7f9108fde4a1 skipped: already exists
+Copying blob de792bdbc7c4 done
+Copying config 7a12b7223c done
+Writing manifest to image destination
+Storing signatures
+7a12b7223c2cd654b3bd28f3f6095a77f6211413598b0076df12a192c8457172
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG      IMAGE ID       CREATED          SIZE
+localhost/do180-custom-httpd                      latest   7a12b7223c2c   14 seconds ago   236 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest   60726b33a00a   21 months ago    448 MB
+quay.io/redhattraining/httpd-parent               2.4      3639ce1374d3   2 years ago      236 MB
+quay.io/redhattraining/httpd-parent               latest   4346d3cace25   2 years ago      236 MB
+[student@workstation ~]$ sudo podman tag do180-custom-httpd quay.io/jairoledezma/dp180-custon-httpd-1.0
+[student@workstation ~]$ sudo podman images
+REPOSITORY                                        TAG      IMAGE ID       CREATED         SIZE
+localhost/do180-custom-httpd                      latest   7a12b7223c2c   2 minutes ago   236 MB
+quay.io/jairoledezma/dp180-custon-httpd-1.0       latest   7a12b7223c2c   2 minutes ago   236 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   latest   60726b33a00a   21 months ago   448 MB
+quay.io/redhattraining/httpd-parent               2.4      3639ce1374d3   2 years ago     236 MB
+quay.io/redhattraining/httpd-parent               latest   4346d3cace25   2 years ago     236 MB
+[student@workstation ~]$ sudo podman push quay.io/jairoledezma/do180-custon-httpd-1.0
+Error: unable to find 'quay.io/jairoledezma/do180-custon-httpd-1.0' in local storage: no such image
+[student@workstation ~]$ sudo podman push quay.io/jairoledezma/dp180-custon-httpd-1.0
+Getting image source signatures
+Copying blob de792bdbc7c4 done
+Copying blob 7f9108fde4a1 skipped: already exists
+Copying blob 574bcc187eda skipped: already exists
+Copying blob c613b100be16 skipped: already exists
+Copying blob 24d85c895b6b skipped: already exists
+Copying config 7a12b7223c done
+Writing manifest to image destination
+Copying config 7a12b7223c done
+Writing manifest to image destination
+Writing manifest to image destination
+Storing signatures
+[student@workstation ~]$ sudo podman run -d --name test-httpd -p 8280:80 jairoledezma/dp180-custon-httpd-1.0
+d030737b158c4c9cc52113fc96c5e0a2fe12e91f5f4e2bef59be171afe3acada
+[student@workstation ~]$ curl http://localhost:8280/do180.html
+DO180 Page
+[student@workstation ~]$ 
+
