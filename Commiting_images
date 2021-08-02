@@ -1,3 +1,7 @@
+https://oauth-openshift.apps.ocp4.example.com/oauth/authorize?client_id=console&redirect_uri=https%3A%2F%2Fconsole-openshift-console.apps.ocp4.example.com%2Fauth%2Fcallback&response_type=code&scope=user%3Afull&state=ae7475e6
+
+
+
 dezma/dp180-custon-httpd-1.0
 d030737b158c4c9cc52113fc96c5e0a2fe12e91f5f4e2bef59be171afe3acada
 [student@workstation ~]$ curl http://localhost:8280/do180.html
